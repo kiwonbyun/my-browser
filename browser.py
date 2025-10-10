@@ -1,5 +1,6 @@
 import tkinter
-from HTMLParser import HTMLParser, print_tree
+from CSSParser import CSSParser, cascade_priority, style
+from HTMLParser import Element, HTMLParser
 from url import URL
 from DocumentLayout import DocumentLayout
 
@@ -7,6 +8,8 @@ WIDTH = 800
 HEIGHT = 600
 HSTEP, VSTEP = 13, 18
 SCROLL_STEP = 100
+DEFAULT_STYLE_SHEET = CSSParser(open("browser.css").read()).parse()
+
 
 def paint_tree(layout_object, display_list):
     display_list.extend(layout_object.paint())
@@ -14,6 +17,11 @@ def paint_tree(layout_object, display_list):
     for child in layout_object.children:
         paint_tree(child, display_list)
 
+def tree_to_list(tree, list):
+    list.append(tree)
+    for child in tree.children:
+        tree_to_list(child, list)
+    return list
 class Browser:
     def __init__(self):
         self.window = tkinter.Tk()
@@ -21,6 +29,7 @@ class Browser:
             self.window,
             width=WIDTH,
             height=HEIGHT,
+            bg="white"
         )
         self.canvas.pack()
         self.scroll = 0
@@ -44,11 +53,30 @@ class Browser:
             return
         self.scroll -= SCROLL_STEP
         self.draw()
-    
+
     def load(self, url):
         body = url.request()
         self.nodes = HTMLParser(body).parse()
-        print(self.nodes)
+
+        rules = DEFAULT_STYLE_SHEET.copy()
+        
+        links = [node.attributes['href'] 
+                for node in tree_to_list(self.nodes, [])
+                if isinstance(node, Element)
+                and node.tag == "link"
+                and node.attributes.get("rel") == "stylesheet"
+                and "href" in node.attributes]
+
+        for link in links:
+            style_url = url.resolve(link)
+            try:
+                body = style_url.request()
+            except:
+                continue
+            rules.extend(CSSParser(body).parse())
+
+        style(self.nodes, sorted(rules, key=cascade_priority))    
+
         self.document = DocumentLayout(self.nodes)
         self.document.layout()
         

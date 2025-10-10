@@ -1,5 +1,3 @@
-
-
 class Text:
     def __init__(self, text, parent):
         self.text = text
@@ -16,6 +14,7 @@ class Element:
         self.attributes = attributes
         self.children = []
         self.parent = parent
+        self.style ={}
 
     def __repr__(self):
         return "<" + repr(self.tag) + ">"

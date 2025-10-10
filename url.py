@@ -22,6 +22,22 @@ class URL:
             self.host, port = self.host.split(":", 1)
             self.port = int(port)
 
+    def resolve(self, url):
+        if "://" in url:
+            return URL(url)
+        if not url.startswith("/"):
+            dir, _ = self.path.rsplit("/", 1)
+            while url.startswith("../"):
+                _, url = url.split("/",1)
+                if "/" in dir:
+                    dir, _ = dir.rsplit("/", 1)
+            url = dir + "/" + url
+        if url.startswith("//"):
+            return URL(self.scheme + ":" + url)
+        else:
+            return URL(self.scheme + "://" + self.host + \
+                ":" + str(self.port) + url)
+
     def request(self):
         if self.scheme == "file":
             with open(self.path, "r") as f:

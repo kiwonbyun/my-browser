@@ -1,6 +1,7 @@
 import tkinter
 
-from tab import Tab
+from Chrome import Chrome
+from Tab import Tab
 from url import URL
 
 
@@ -22,6 +23,7 @@ class Browser:
         self.window.bind("<Button-1>", self.handle_click)
         self.tabs = []
         self.active_tab = None
+        self.chrome = Chrome(self)
     
     def handle_down(self, e):
         self.active_tab.scrolldown()

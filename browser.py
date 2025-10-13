@@ -8,6 +8,7 @@ from url import URL
 WIDTH = 800
 HEIGHT = 600
 
+
 class Browser:
     def __init__(self):
         self.window = tkinter.Tk()
@@ -24,7 +25,7 @@ class Browser:
         self.tabs = []
         self.active_tab = None
         self.chrome = Chrome(self)
-    
+
     def handle_down(self, e):
         self.active_tab.scrolldown()
         self.draw()
@@ -34,21 +35,29 @@ class Browser:
         self.draw()
 
     def handle_click(self, e):
-        self.active_tab.click(e.x, e.y)
+        if e.y < self.chrome.bottom:
+            self.chrome.click(e.x, e.y)
+        else:
+            tab_y = e.y - self.chrome.bottom
+            self.active_tab.click(e.x, tab_y)
         self.draw()
 
     def draw(self):
         self.canvas.delete("all")
-        self.active_tab.draw(self.canvas)
+        self.active_tab.draw(self.canvas, self.chrome.bottom)
+        for cmd in self.chrome.paint():
+            cmd.execute(0, self.canvas)
 
     def new_tab(self, url):
-        new_tab = Tab()
+        new_tab = Tab(HEIGHT - self.chrome.bottom)
         new_tab.load(url)
         self.active_tab = new_tab
         self.tabs.append(new_tab)
         self.draw()
 
+
 if __name__ == "__main__":
     import sys
+
     Browser().new_tab(URL(sys.argv[1]))
     tkinter.mainloop()

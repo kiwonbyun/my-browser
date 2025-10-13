@@ -1,7 +1,5 @@
-import tkinter
 from CSSParser import CSSParser, cascade_priority, style
 from HTMLParser import Element, HTMLParser, Text
-from url import URL
 from DocumentLayout import DocumentLayout
 
 WIDTH = 800
@@ -13,29 +11,34 @@ DEFAULT_STYLE_SHEET = CSSParser(open("browser.css").read()).parse()
 
 def paint_tree(layout_object, display_list):
     display_list.extend(layout_object.paint())
-        
+
     for child in layout_object.children:
         paint_tree(child, display_list)
+
 
 def tree_to_list(tree, list):
     list.append(tree)
     for child in tree.children:
         tree_to_list(child, list)
     return list
+
+
 class Tab:
-    def __init__(self):
+    def __init__(self, tab_height):
         self.url = None
         self.scroll = 0
-        
+        self.tab_height = tab_height
 
     def click(self, x, y):
         y += self.scroll
-        objs = [obj for obj in tree_to_list(self.document, [])
-                if obj.x <= x < obj.x + obj.width
-                and obj.y <= y < obj.y + obj.height]
-        
+        objs = [
+            obj
+            for obj in tree_to_list(self.document, [])
+            if obj.x <= x < obj.x + obj.width and obj.y <= y < obj.y + obj.height
+        ]
+
         if not objs:
-            return 
+            return
         elt = objs[-1].node
         while elt:
             if isinstance(elt, Text):
@@ -45,16 +48,16 @@ class Tab:
                 return self.load(url)
             elt = elt.parent
 
-
-
-    def draw(self, canvas):
+    def draw(self, canvas, offset):
         for cmd in self.display_list:
-            if cmd.top > self.scroll + HEIGHT: continue
-            if cmd.bottom < self.scroll: continue
-            cmd.execute(self.scroll, canvas)
+            if cmd.rect.top > self.scroll + self.tab_height:
+                continue
+            if cmd.rect.bottom < self.scroll:
+                continue
+            cmd.execute(self.scroll - offset, canvas)
 
     def scrolldown(self):
-        max_y = max(self.document.height + 2 * VSTEP - HEIGHT, 0)
+        max_y = max(self.document.height + 2 * VSTEP - self.tab_height, 0)
         self.scroll = min(self.scroll + SCROLL_STEP, max_y)
 
     def scrollup(self):
@@ -68,13 +71,15 @@ class Tab:
         self.nodes = HTMLParser(body).parse()
 
         rules = DEFAULT_STYLE_SHEET.copy()
-        
-        links = [node.attributes['href'] 
-                for node in tree_to_list(self.nodes, [])
-                if isinstance(node, Element)
-                and node.tag == "link"
-                and node.attributes.get("rel") == "stylesheet"
-                and "href" in node.attributes]
+
+        links = [
+            node.attributes["href"]
+            for node in tree_to_list(self.nodes, [])
+            if isinstance(node, Element)
+            and node.tag == "link"
+            and node.attributes.get("rel") == "stylesheet"
+            and "href" in node.attributes
+        ]
 
         for link in links:
             style_url = url.resolve(link)
@@ -84,10 +89,10 @@ class Tab:
                 continue
             rules.extend(CSSParser(body).parse())
 
-        style(self.nodes, sorted(rules, key=cascade_priority))    
+        style(self.nodes, sorted(rules, key=cascade_priority))
 
         self.document = DocumentLayout(self.nodes)
         self.document.layout()
-        
+
         self.display_list = []
         paint_tree(self.document, self.display_list)

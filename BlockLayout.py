@@ -1,6 +1,4 @@
-import tkinter.font
-
-from Draw import DrawRect, DrawText
+from Draw import DrawRect, Rect
 from HTMLParser import Element, Text
 from LineLayout import LineLayout
 from TextLayout import TextLayout
@@ -9,10 +7,46 @@ from utils import get_font
 
 HSTEP, VSTEP = 13, 18
 WIDTH = 800
-BLOCK_ELEMENTS = ["html", "body", "article","address","menu", "aside", "blockquote", "details", "div", "dl","dt","dd","summary", "fieldset","hr", "figcaption", "figure","li", "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hgroup", "main", "nav", "ol", "p", "pre", "section", "table","legend", "ul", "video"]
-
-
-
+BLOCK_ELEMENTS = [
+    "html",
+    "body",
+    "article",
+    "address",
+    "menu",
+    "aside",
+    "blockquote",
+    "details",
+    "div",
+    "dl",
+    "dt",
+    "dd",
+    "summary",
+    "fieldset",
+    "hr",
+    "figcaption",
+    "figure",
+    "li",
+    "footer",
+    "form",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "header",
+    "hgroup",
+    "main",
+    "nav",
+    "ol",
+    "p",
+    "pre",
+    "section",
+    "table",
+    "legend",
+    "ul",
+    "video",
+]
 
 
 class BlockLayout:
@@ -28,13 +62,18 @@ class BlockLayout:
 
     def layout_mode(self):
         if isinstance(self.node, Text):
-            return 'inline'
-        elif any([isinstance(child, Element) and child.tag in BLOCK_ELEMENTS for child in self.node.children]):
-            return 'block'
-        elif self.node.children: 
-            return 'inline'
+            return "inline"
+        elif any(
+            [
+                isinstance(child, Element) and child.tag in BLOCK_ELEMENTS
+                for child in self.node.children
+            ]
+        ):
+            return "block"
+        elif self.node.children:
+            return "inline"
         else:
-            return 'block'
+            return "block"
 
     def layout_intermediate(self):
         previous = None
@@ -42,6 +81,9 @@ class BlockLayout:
             next = BlockLayout(child, self, previous)
             self.children.append(next)
             previous = next
+
+    def self_rect(self):
+        return Rect(self.x, self.y, self.x + self.width, self.y + self.height)
 
     def layout(self):
         self.width = self.parent.width
@@ -53,19 +95,19 @@ class BlockLayout:
             self.y = self.parent.y
 
         mode = self.layout_mode()
-        if mode == 'block':
+        if mode == "block":
             previous = None
             for child in self.node.children:
                 next = BlockLayout(child, self, previous)
                 self.children.append(next)
                 previous = next
-            
+
         else:
             self.new_line()
             self.recurse(self.node)
 
         for child in self.children:
-                child.layout()
+            child.layout()
 
         self.height = sum([child.height for child in self.children])
 
@@ -77,10 +119,8 @@ class BlockLayout:
             if node.tag == "br":
                 self.new_line()
             for child in node.children:
-                self.recurse(child)    
+                self.recurse(child)
 
-
-       
     def open_tag(self, tag):
         if tag == "i":
             self.style = "italic"
@@ -109,8 +149,6 @@ class BlockLayout:
         elif tag == "p":
             self.flush()
             self.cursor_y += VSTEP
-        
-        
 
     def flush(self):
         if not self.line:
@@ -137,8 +175,8 @@ class BlockLayout:
         weight = node.style["font-weight"]
         style = node.style["font-style"]
         if style == "normal":
-            style = 'roman'
-        size = int(float(node.style["font-size"][:-2]) * .75)
+            style = "roman"
+        size = int(float(node.style["font-size"][:-2]) * 0.75)
         font = get_font(size, weight, style)
 
         w = font.measure(word)
@@ -155,9 +193,6 @@ class BlockLayout:
         bgcolor = self.node.style.get("background-color", "transparent")
 
         if bgcolor != "transparent":
-            x2, y2 = self.x + self.width, self.y + self.height
-            print(self.x, self.y, x2, y2)
-            rect = DrawRect(self.x, self.y, x2, y2, bgcolor)
+            rect = DrawRect(self.self_rect(), bgcolor)
             cmds.append(rect)
-        
         return cmds

@@ -22,21 +22,28 @@ class URL:
             self.host, port = self.host.split(":", 1)
             self.port = int(port)
 
+    def __str__(self):
+        port_part = ":" + str(self.port)
+        if self.scheme == "https" and self.port == 443:
+            port_part = ""
+        if self.scheme == "http" and self.port == 80:
+            port_part = ""
+        return self.scheme + "://" + self.host + port_part + self.path
+
     def resolve(self, url):
         if "://" in url:
             return URL(url)
         if not url.startswith("/"):
             dir, _ = self.path.rsplit("/", 1)
             while url.startswith("../"):
-                _, url = url.split("/",1)
+                _, url = url.split("/", 1)
                 if "/" in dir:
                     dir, _ = dir.rsplit("/", 1)
             url = dir + "/" + url
         if url.startswith("//"):
             return URL(self.scheme + ":" + url)
         else:
-            return URL(self.scheme + "://" + self.host + \
-                ":" + str(self.port) + url)
+            return URL(self.scheme + "://" + self.host + ":" + str(self.port) + url)
 
     def request(self):
         if self.scheme == "file":

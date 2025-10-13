@@ -22,9 +22,15 @@ class Browser:
         self.window.bind("<Down>", self.handle_down)
         self.window.bind("<Up>", self.handle_up)
         self.window.bind("<Button-1>", self.handle_click)
+        self.window.bind("<Key>", self.handle_key)
+        self.window.bind("<Return>", self.handle_enter)
         self.tabs = []
         self.active_tab = None
         self.chrome = Chrome(self)
+
+    def handle_enter(self, e):
+        self.chrome.enter()
+        self.draw()
 
     def handle_down(self, e):
         self.active_tab.scrolldown()
@@ -40,6 +46,14 @@ class Browser:
         else:
             tab_y = e.y - self.chrome.bottom
             self.active_tab.click(e.x, tab_y)
+        self.draw()
+
+    def handle_key(self, e):
+        if len(e.char) == 0:
+            return
+        if not (0x20 <= ord(e.char) < 0x7F):
+            return
+        self.chrome.keypress(e.char)
         self.draw()
 
     def draw(self):

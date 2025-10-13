@@ -28,6 +28,7 @@ class Tab:
         self.url = None
         self.scroll = 0
         self.tab_height = tab_height
+        self.history = []
 
     def click(self, x, y):
         y += self.scroll
@@ -65,9 +66,16 @@ class Tab:
             return
         self.scroll -= SCROLL_STEP
 
+    def go_back(self):
+        if len(self.history) > 1:
+            self.history.pop()
+            back = self.history.pop()
+            self.load(back)
+
     def load(self, url):
-        self.url = url
         body = url.request()
+        self.url = url
+        self.history.append(url)
         self.nodes = HTMLParser(body).parse()
 
         rules = DEFAULT_STYLE_SHEET.copy()

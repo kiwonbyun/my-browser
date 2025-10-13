@@ -1,6 +1,7 @@
 from Draw import DrawText
 from utils import get_font
 
+
 class TextLayout:
     def __init__(self, node, word, parent, previous):
         self.node = node
@@ -8,13 +9,13 @@ class TextLayout:
         self.parent = parent
         self.previous = previous
         self.children = []
-        
+
     def layout(self):
         weight = self.node.style["font-weight"]
         style = self.node.style["font-style"]
         if style == "normal":
-            style = 'roman'
-        size = int(float(self.node.style["font-size"][:-2]) * .75)
+            style = "roman"
+        size = int(float(self.node.style["font-size"][:-2]) * 0.75)
         self.font = get_font(size, weight, style)
 
         self.width = self.font.measure(self.word)
@@ -28,4 +29,3 @@ class TextLayout:
     def paint(self):
         color = self.node.style["color"]
         return [DrawText(self.x, self.y, self.word, self.font, color)]
-        

@@ -51,9 +51,14 @@ class Chrome:
             self.tabbar_bottom,
         )
 
+    def blur(self):
+        self.focus = None
+
     def keypress(self, char):
         if self.focus == "address bar":
             self.address_bar += char
+            return True
+        return False
 
     def enter(self):
         if self.focus == "address bar":

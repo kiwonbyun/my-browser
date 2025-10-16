@@ -4,7 +4,7 @@ class LineLayout:
         self.parent = parent
         self.previous = previous
         self.children = []
-        
+
     def layout(self):
         self.width = self.parent.width
         self.x = self.parent.x
@@ -12,14 +12,14 @@ class LineLayout:
             self.y = self.previous.y + self.previous.height
         else:
             self.y = self.parent.y
-        
+
         for word in self.children:
             word.layout()
 
         if not self.children:
             self.height = 0
             return
-        
+
         max_ascent = max([word.font.metrics("ascent") for word in self.children])
         baseline = self.y + 1.25 * max_ascent
         for word in self.children:

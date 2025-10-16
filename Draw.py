@@ -9,6 +9,13 @@ class Rect:
         return x >= self.left and x < self.right and y >= self.top and y < self.bottom
 
 
+class Text:
+    def __init__(self, text, parent):
+        self.text = text
+        self.children = []
+        self.parent = parent
+
+
 class DrawText:
     def __init__(self, x1, y1, text, font, color):
         self.rect = Rect(

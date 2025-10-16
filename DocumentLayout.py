@@ -20,4 +20,4 @@ class DocumentLayout:
         return []
 
     def paint(self):
-        return []  
+        return []
